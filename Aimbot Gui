@@ -1,0 +1,337 @@
+-- Omars Private Cheese - Mobile-friendly ESP & Aimbot Menu with drag and aimbot toggle
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "OmarsPrivateCheese"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = game:GetService("CoreGui")
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 260, 0, 320)
+frame.Position = UDim2.new(0, 50, 0, 50)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+frame.Active = true
+frame.Draggable = false -- We'll implement manual drag for mobile support
+
+-- Title bar
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+titleBar.Parent = frame
+
+local titleText = Instance.new("TextLabel")
+titleText.Text = "Omars Private Cheese"
+titleText.Font = Enum.Font.SourceSansBold
+titleText.TextSize = 18
+titleText.TextColor3 = Color3.new(1,1,1)
+titleText.BackgroundTransparency = 1
+titleText.Size = UDim2.new(1, -30, 1, 0)
+titleText.Position = UDim2.new(0, 10, 0, 0)
+titleText.TextXAlignment = Enum.TextXAlignment.Left
+titleText.Parent = titleBar
+
+local closeButton = Instance.new("TextButton")
+closeButton.Text = "X"
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.TextSize = 18
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.BackgroundTransparency = 1
+closeButton.Size = UDim2.new(0, 30, 1, 0)
+closeButton.Position = UDim2.new(1, -30, 0, 0)
+closeButton.Parent = titleBar
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+-- Section Label "Main"
+local mainLabel = Instance.new("TextLabel")
+mainLabel.Text = "Main"
+mainLabel.Font = Enum.Font.SourceSansBold
+mainLabel.TextSize = 16
+mainLabel.TextColor3 = Color3.new(1, 1, 1)
+mainLabel.BackgroundTransparency = 1
+mainLabel.Position = UDim2.new(0, 10, 0, 40)
+mainLabel.Size = UDim2.new(0, 80, 0, 20)
+mainLabel.TextXAlignment = Enum.TextXAlignment.Left
+mainLabel.Parent = frame
+
+-- Create toggle button function
+local function createToggle(text, posY)
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, -20, 0, 30)
+    container.Position = UDim2.new(0, 10, 0, posY)
+    container.BackgroundTransparency = 1
+    container.Parent = frame
+
+    local label = Instance.new("TextLabel")
+    label.Text = text
+    label.Font = Enum.Font.SourceSans
+    label.TextSize = 16
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(0.8, 0, 1, 0)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = container
+
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 25, 0, 25)
+    toggle.Position = UDim2.new(0.85, 0, 0.1, 0)
+    toggle.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    toggle.BorderSizePixel = 1
+    toggle.Text = ""
+    toggle.Parent = container
+
+    local isOn = false
+
+    local checkmark = Instance.new("TextLabel")
+    checkmark.Text = "âœ“"
+    checkmark.Font = Enum.Font.SourceSansBold
+    checkmark.TextSize = 20
+    checkmark.TextColor3 = Color3.new(0, 1, 0)
+    checkmark.BackgroundTransparency = 1
+    checkmark.Size = UDim2.new(1, 0, 1, 0)
+    checkmark.Visible = false
+    checkmark.Parent = toggle
+
+    toggle.MouseButton1Click:Connect(function()
+        isOn = not isOn
+        checkmark.Visible = isOn
+    end)
+
+    return {
+        IsOn = function() return isOn end,
+        OnToggle = function(callback)
+            toggle.MouseButton1Click:Connect(function()
+                callback(isOn)
+            end)
+        end,
+    }
+end
+
+-- Create toggles
+local visualToggle = createToggle("Visual", 70)
+local boxToggle = createToggle("Box ESP", 110)
+local nameToggle = createToggle("Name", 150)
+local chamsToggle = createToggle("Chams", 190)
+local teamColorToggle = createToggle("Use Team-Color", 230)
+
+-- Aimbot toggle button (separate, with label and toggle)
+local aimbotLabel = Instance.new("TextLabel")
+aimbotLabel.Text = "Aimbot"
+aimbotLabel.Font = Enum.Font.SourceSans
+aimbotLabel.TextSize = 16
+aimbotLabel.TextColor3 = Color3.new(1, 1, 1)
+aimbotLabel.BackgroundTransparency = 1
+aimbotLabel.Size = UDim2.new(0.8, 0, 0, 30)
+aimbotLabel.Position = UDim2.new(0, 10, 0, 270)
+aimbotLabel.TextXAlignment = Enum.TextXAlignment.Left
+aimbotLabel.Parent = frame
+
+local aimbotToggleButton = Instance.new("TextButton")
+aimbotToggleButton.Size = UDim2.new(0, 25, 0, 25)
+aimbotToggleButton.Position = UDim2.new(0.85, 0, 0, 270)
+aimbotToggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+aimbotToggleButton.BorderSizePixel = 1
+aimbotToggleButton.Text = ""
+aimbotToggleButton.Parent = frame
+
+local aimbotOn = false
+local aimbotCheckmark = Instance.new("TextLabel")
+aimbotCheckmark.Text = "âœ“"
+aimbotCheckmark.Font = Enum.Font.SourceSansBold
+aimbotCheckmark.TextSize = 20
+aimbotCheckmark.TextColor3 = Color3.new(0, 1, 0)
+aimbotCheckmark.BackgroundTransparency = 1
+aimbotCheckmark.Size = UDim2.new(1, 0, 1, 0)
+aimbotCheckmark.Visible = false
+aimbotCheckmark.Parent = aimbotToggleButton
+
+aimbotToggleButton.MouseButton1Click:Connect(function()
+    aimbotOn = not aimbotOn
+    aimbotCheckmark.Visible = aimbotOn
+end)
+
+-- Drag functionality for the frame (works on mobile and desktop)
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+titleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- ESP implementation using BillboardGui
+
+local function createBillboardBox(adornParent)
+    local billboard = Instance.new("BillboardGui")
+    billboard.Adornee = adornParent
+    billboard.AlwaysOnTop = true
+    billboard.Size = UDim2.new(0, 100, 0, 100)
+    billboard.StudsOffset = Vector3.new(0, 2, 0)
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundTransparency = 0.7
+    frame.BackgroundColor3 = Color3.new(1, 0, 0)
+    frame.BorderColor3 = Color3.new(1, 1, 1)
+    frame.BorderSizePixel = 1
+    frame.Parent = billboard
+
+    billboard.Parent = screenGui
+
+    return billboard
+end
+
+local function createNameTag(adornParent, playerName)
+    local billboard = Instance.new("BillboardGui")
+    billboard.Adornee = adornParent
+    billboard.AlwaysOnTop = true
+    billboard.Size = UDim2.new(0, 150, 0, 25)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+
+    local label = Instance.new("TextLabel")
+    label.BackgroundTransparency = 0.5
+    label.BackgroundColor3 = Color3.new(0, 0, 0)
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextStrokeTransparency = 0.5
+    label.Font = Enum.Font.SourceSansBold
+    label.TextSize = 18
+    label.Text = playerName
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.Parent = billboard
+
+    billboard.Parent = screenGui
+
+    return billboard
+end
+
+-- Store ESP GUIs
+local espData = {}
+
+local function cleanupESP()
+    for player, data in pairs(espData) do
+        if data.box then data.box:Destroy() end
+        if data.nameTag then data.nameTag:Destroy() end
+        espData[player] = nil
+    end
+end
+
+-- Update ESP each frame
+RunService.RenderStepped:Connect(function()
+    if not visualToggle.IsOn() then
+        cleanupESP()
+        return
+    end
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = player.Character.HumanoidRootPart
+
+            if not espData[player] then espData[player] = {} end
+
+            -- Box ESP
+            if boxToggle.IsOn() then
+                if not espData[player].box then
+                    espData[player].box = createBillboardBox(hrp)
+                end
+                espData[player].box.Enabled = true
+                if teamColorToggle.IsOn() and player.Team then
+                    espData[player].box.Frame.BackgroundColor3 = player.Team.TeamColor.Color
+                elseif chamsToggle.IsOn() then
+                    espData[player].box.Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+                else
+                    espData[player].box.Frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+                end
+            else
+                if espData[player].box then
+                    espData[player].box.Enabled = false
+                end
+            end
+
+            -- Name ESP
+            if nameToggle.IsOn() then
+                if not espData[player].nameTag then
+                    espData[player].nameTag = createNameTag(hrp, player.Name)
+                end
+                espData[player].nameTag.Enabled = true
+            else
+                if espData[player].nameTag then
+                    espData[player].nameTag.Enabled = false
+                end
+            end
+
+        else
+            if espData[player] then
+                if espData[player].box then espData[player].box.Enabled = false end
+                if espData[player].nameTag then espData[player].nameTag.Enabled = false end
+            end
+        end
+    end
+end)
+
+-- Aimbot implementation (activated by toggle button)
+RunService.RenderStepped:Connect(function()
+    if aimbotOn then
+        local closestDist = math.huge
+        local closestPlayer = nil
+        local screenCenter = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = player.Character.HumanoidRootPart
+                local screenPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+                if onScreen then
+                    local dist = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
+                    if dist < closestDist then
+                        closestDist = dist
+                        closestPlayer = player
+                    end
+                end
+            end
+        end
+
+        if closestPlayer and closestDist < 150 then -- 150 pixels radius around center
+            local hrp = closestPlayer.Character.HumanoidRootPart
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, hrp.Position)
+        end
+    end
+end)
